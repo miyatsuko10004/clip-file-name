@@ -1,33 +1,34 @@
 @echo off
 setlocal EnableDelayedExpansion
 
-REM バッチファイルのあるディレクトリに移動
+REM Change directory to the script location
 cd /d "%~dp0"
 
-REM 引数がある場合（フォルダをドラッグ＆ドロップされた場合）
+REM Check if an argument is provided (drag and drop)
 if not "%~1"=="" (
-    REM WindowsパスをWSLパスに変換
+    REM Convert Windows path to WSL path
     for /f "usebackq delims=" %%A in (`wsl wslpath -u "%~1"`) do set "TARGET_DIR=%%A"
-    echo 対象ディレクトリ: %~1
-    echo WSLパス: !TARGET_DIR!
+    echo Target Directory: %~1
+    echo WSL Path: !TARGET_DIR!
     echo.
     
-    REM 変換したパスを引数に渡して実行
-    wsl uv run main.py "!TARGET_DIR!"
+    REM Run the python script with the target directory
+    REM Use bash -l -c to ensure environment variables are loaded
+    wsl bash -l -c "uv run main.py \"!TARGET_DIR!\""
 ) else (
-    REM 引数がない場合はカレントディレクトリ（バッチファイルのある場所）を対象に実行
-    echo 対象ディレクトリ: カレントディレクトリ
+    REM If no argument, run for the current directory
+    echo Target Directory: Current Directory
     echo.
-    wsl uv run main.py
+    wsl bash -l -c "uv run main.py"
 )
 
 echo.
 if %ERRORLEVEL% equ 0 (
-    echo [SUCCESS] ファイル名をクリップボードにコピーしました。
+    echo [SUCCESS] Filenames copied to clipboard.
 ) else (
-    echo [ERROR] エラーが発生しました。
+    echo [ERROR] An error occurred.
 )
 
 echo.
-echo 何かキーを押すと終了します...
+echo Press any key to exit...
 pause >nul
